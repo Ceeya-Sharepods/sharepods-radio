@@ -5,39 +5,49 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SharePods Radio</title>
+
 <style>
+  * {
+    box-sizing: border-box;
+  }
+
   html, body {
     width: 100%;
     height: 100%;
     margin: 0;
     overflow: hidden;
-}
+  }
 
-body {
-    box-sizing: border-box;
+  body {
     background: #080810;
     color: white;
     font-family: Arial, sans-serif;
     text-align: center;
     padding: 8px 10px;
-}
+  }
+
   h2 {
     color: #ff39c8;
     font-size: 20px;
     margin: 8px 0;
   }
-  p { font-size: 13px; }
-  select {
+
+  p {
+    font-size: 13px;
+  }
+
+  select, input {
     width: 95%;
     max-width: 320px;
     padding: 12px;
-    margin: 12px 0;
+    margin: 8px 0;
     background: #111827;
     color: #37d9ff;
     border: 1px solid #ff39c8;
     border-radius: 8px;
     font-size: 14px;
   }
+
   button {
     background: #111827;
     color: #37d9ff;
@@ -48,13 +58,29 @@ body {
     cursor: pointer;
     font-size: 14px;
   }
-  button:hover { background: #27213b; }
+
+  button:hover {
+    background: #27213b;
+  }
+
   #status {
     color: #37d9ff;
     min-height: 18px;
+    margin: 8px 0;
+    overflow-wrap: anywhere;
+  }
+
+  #customBox {
+    display: none;
+  }
+
+  #customUrl {
+    padding: 9px;
+    margin: 3px 0;
   }
 </style>
 </head>
+
 <body>
 
 <h2>∞ SHAREPODS RADIO</h2>
@@ -79,51 +105,101 @@ body {
   <option value="https://media-ssl.musicradio.com/ClassicFMMP3">
     Classic FM
   </option>
+  <option value="custom">
+    Custom URL
+  </option>
 </select>
 
+<div id="customBox">
+  <input
+    id="customUrl"
+    type="url"
+    placeholder="https://your-radio-stream..."
+    autocomplete="off"
+    spellcheck="false"
+  >
+</div>
+
 <div>
-  <button onclick="playRadio()">▶ PLAY</button>
-  <button onclick="pauseRadio()">Ⅱ PAUSE</button>
+  <button type="button" onclick="playRadio()">&#9654; PLAY</button>
+  <button type="button" onclick="pauseRadio()">&#8545; PAUSE</button>
 </div>
 
 <p id="status">Ready</p>
+
 <audio id="radio" preload="none"></audio>
 
 <script>
-const radio = document.getElementById("radio");
-const station = document.getElementById("station");
-const status = document.getElementById("status");
+  const radio = document.getElementById("radio");
+  const station = document.getElementById("station");
+  const statusText = document.getElementById("status");
+  const customBox = document.getElementById("customBox");
+  const customUrl = document.getElementById("customUrl");
 
-radio.src = station.value;
-
-async function playRadio() {
-  status.textContent = "Connecting...";
-
-  try {
-    await radio.play();
-    status.textContent =
-      "Playing: " + station.options[station.selectedIndex].text.trim();
-  } catch (error) {
-    status.textContent = "Playback failed: " + error.message;
-  }
-}
-
-function pauseRadio() {
-  radio.pause();
-  status.textContent = "Paused";
-}
-
-function changeStation() {
-  radio.pause();
   radio.src = station.value;
-  radio.load();
-  status.textContent = "Selected: " +
-    station.options[station.selectedIndex].text.trim();
-}
 
-radio.addEventListener("error", function() {
-  status.textContent = "Stream unavailable or unsupported";
-});
+  function changeStation() {
+    radio.pause();
+    radio.removeAttribute("src");
+    radio.load();
+
+    const isCustom = station.value === "custom";
+    customBox.style.display = isCustom ? "block" : "none";
+
+    if (!isCustom) {
+      radio.src = station.value;
+      radio.load();
+    }
+
+    statusText.textContent = isCustom
+      ? "Enter your stream URL"
+      : "Selected: " +
+        station.options[station.selectedIndex].text.trim();
+  }
+
+  async function playRadio() {
+    if (station.value === "custom") {
+      const url = customUrl.value.trim();
+
+      if (!/^https:\/\/[^\/\s]+/i.test(url)) {
+        statusText.textContent = "Enter a valid HTTPS stream URL";
+        return;
+      }
+
+      if (radio.getAttribute("src") !== url) {
+        radio.pause();
+        radio.src = url;
+        radio.load();
+      }
+    }
+
+    statusText.textContent = "Connecting...";
+
+    try {
+      await radio.play();
+
+      statusText.textContent = station.value === "custom"
+        ? "Playing: Custom Radio"
+        : "Playing: " +
+          station.options[station.selectedIndex].text.trim();
+
+    } catch (error) {
+      if (error.name !== "AbortError") {
+        statusText.textContent =
+          "Playback failed: " + error.message;
+      }
+    }
+  }
+
+  function pauseRadio() {
+    radio.pause();
+    statusText.textContent = "Paused";
+  }
+
+  radio.addEventListener("error", function() {
+    statusText.textContent =
+      "Stream unavailable or unsupported";
+  });
 </script>
 
 </body>
