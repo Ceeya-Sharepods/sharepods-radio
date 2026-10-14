@@ -1,0 +1,105 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SharePods Radio Test</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 14px;
+    background: #080810;
+    color: white;
+    font-family: Arial, sans-serif;
+    text-align: center;
+  }
+  h2 { color: #ff39c8; }
+  select, button {
+    background: #111827;
+    color: #37d9ff;
+    border: 1px solid #ff39c8;
+    border-radius: 8px;
+    padding: 10px;
+    margin: 5px;
+  }
+  #status { color: #37d9ff; }
+</style>
+</head>
+<body>
+
+<h2>SHAREPODS RADIO TEST</h2>
+<p>URL-controlled station selection</p>
+
+<select id="station">
+  <option value="metal">Heavy Metal</option>
+  <option value="rock">Alternative Rock</option>
+  <option value="blues">Star Blues</option>
+  <option value="chill">Chill</option>
+  <option value="salsa">Solo Salsa</option>
+  <option value="classic">Classic FM</option>
+</select>
+
+<div>
+  <button onclick="playRadio()">PLAY</button>
+  <button onclick="pauseRadio()">PAUSE</button>
+</div>
+
+<p id="status">Ready</p>
+<audio id="radio" preload="none"></audio>
+
+<script>
+const stations = {
+  metal: "https://stream.starfm.de/fromhell/mp3-192/",
+  rock: "https://stream.starfm.de/alternat/mp3-192/",
+  blues: "https://stream.starfm.de/blues/mp3-192/",
+  chill: "https://stream.spreeradio.de/spree-chill/mp3-192/",
+  salsa: "https://c15.radioboss.fm:18230/stream",
+  classic: "https://media-ssl.musicradio.com/ClassicFMMP3"
+};
+
+const selector = document.getElementById("station");
+const radio = document.getElementById("radio");
+const statusText = document.getElementById("status");
+
+const params = new URLSearchParams(window.location.search);
+const requested = params.get("station");
+
+if (requested && stations[requested]) {
+  selector.value = requested;
+  statusText.textContent = "Received station: " + requested;
+}
+
+selector.addEventListener("change", () => {
+  radio.pause();
+  radio.removeAttribute("src");
+  radio.load();
+  statusText.textContent = "Selected: " +
+    selector.options[selector.selectedIndex].text;
+});
+
+async function playRadio() {
+  const name = selector.value;
+  radio.pause();
+  radio.src = stations[name];
+  radio.load();
+
+  statusText.textContent = "Connecting...";
+
+  try {
+    await radio.play();
+    statusText.textContent = "Playing: " + name;
+  } catch (error) {
+    statusText.textContent = "Playback failed: " + error.message;
+  }
+}
+
+function pauseRadio() {
+  radio.pause();
+  statusText.textContent = "Paused";
+}
+</script>
+
+</body>
+</html>
