@@ -1,0 +1,61 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SharePods Radio</title>
+<style>
+  body {
+    background: #080810;
+    color: white;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    padding: 25px;
+  }
+  h2 { color: #ff39c8; }
+  button {
+    background: #111827;
+    color: #37d9ff;
+    border: 1px solid #ff39c8;
+    border-radius: 8px;
+    padding: 14px 25px;
+    margin: 8px;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+  <h2>∞ SHAREPODS RADIO</h2>
+  <p>Your music. Your world.</p>
+
+  <button onclick="playRadio()">▶ PLAY</button>
+  <button onclick="pauseRadio()">Ⅱ PAUSE</button>
+
+  <p id="status">Ready</p>
+
+  <audio id="radio" preload="none"></audio>
+
+<script>
+const radio = document.getElementById("radio");
+const status = document.getElementById("status");
+
+radio.src = "http://radio.radiospiral.net:8000/stream.mp3";
+
+async function playRadio() {
+  status.textContent = "Connecting...";
+  try {
+    await radio.play();
+    status.textContent = "Playing";
+  } catch (error) {
+    status.textContent = "Playback failed: " + error.message;
+  }
+}
+
+function pauseRadio() {
+  radio.pause();
+  status.textContent = "Paused";
+}
+</script>
+</body>
+</html>
