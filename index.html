@@ -11,42 +11,91 @@
     color: white;
     font-family: Arial, sans-serif;
     text-align: center;
-    padding: 25px;
+    margin: 0;
+    padding: 16px 10px;
   }
-  h2 { color: #ff39c8; }
+  h2 {
+    color: #ff39c8;
+    font-size: 20px;
+    margin: 8px 0;
+  }
+  p { font-size: 13px; }
+  select {
+    width: 95%;
+    max-width: 320px;
+    padding: 12px;
+    margin: 12px 0;
+    background: #111827;
+    color: #37d9ff;
+    border: 1px solid #ff39c8;
+    border-radius: 8px;
+    font-size: 14px;
+  }
   button {
     background: #111827;
     color: #37d9ff;
     border: 1px solid #ff39c8;
     border-radius: 8px;
-    padding: 14px 25px;
-    margin: 8px;
+    padding: 12px 20px;
+    margin: 4px;
     cursor: pointer;
+    font-size: 14px;
+  }
+  button:hover { background: #27213b; }
+  #status {
+    color: #37d9ff;
+    min-height: 18px;
   }
 </style>
 </head>
 <body>
-  <h2>∞ SHAREPODS RADIO</h2>
-  <p>Your music. Your world.</p>
 
+<h2>∞ SHAREPODS RADIO</h2>
+<p>Your music. Your world.</p>
+
+<select id="station" onchange="changeStation()">
+  <option value="https://stream.starfm.de/fromhell/mp3-192/">
+    Heavy Metal
+  </option>
+  <option value="https://stream.starfm.de/alternat/mp3-192/">
+    Alternative Rock
+  </option>
+  <option value="https://stream.starfm.de/blues/mp3-192/">
+    Star Blues
+  </option>
+  <option value="https://stream.spreeradio.de/spree-chill/mp3-192/">
+    Chill
+  </option>
+  <option value="https://c15.radioboss.fm:18230/stream">
+    Solo Salsa
+  </option>
+  <option value="https://media-ssl.musicradio.com/ClassicFMMP3">
+    Classic FM
+  </option>
+</select>
+
+<div>
   <button onclick="playRadio()">▶ PLAY</button>
   <button onclick="pauseRadio()">Ⅱ PAUSE</button>
+</div>
 
-  <p id="status">Ready</p>
-
-  <audio id="radio" preload="none"></audio>
+<p id="status">Ready</p>
+<audio id="radio" preload="none"></audio>
 
 <script>
 const radio = document.getElementById("radio");
+const station = document.getElementById("station");
 const status = document.getElementById("status");
 
-radio.src = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
+radio.src = station.value;
 
 async function playRadio() {
   status.textContent = "Connecting...";
+
   try {
     await radio.play();
-    status.textContent = "Playing";
+    status.textContent =
+      "Playing: " + station.options[station.selectedIndex].text.trim();
   } catch (error) {
     status.textContent = "Playback failed: " + error.message;
   }
@@ -56,6 +105,19 @@ function pauseRadio() {
   radio.pause();
   status.textContent = "Paused";
 }
+
+function changeStation() {
+  radio.pause();
+  radio.src = station.value;
+  radio.load();
+  status.textContent = "Selected: " +
+    station.options[station.selectedIndex].text.trim();
+}
+
+radio.addEventListener("error", function() {
+  status.textContent = "Stream unavailable or unsupported";
+});
 </script>
+
 </body>
 </html>
