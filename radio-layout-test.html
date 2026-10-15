@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SharePods Radio Layout Test</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { width: 100%; min-height: 100%; }
+  body {
+    margin: 0;
+    padding: clamp(12px, 3vw, 32px);
+    background: #080810;
+    color: white;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+  }
+  main { width: min(100%, 760px); }
+  h2 { color: #ff39c8; font-size: clamp(24px, 4vw, 46px); margin: 0 0 12px; }
+  p { font-size: clamp(14px, 2vw, 22px); }
+  select, button {
+    background: #111827;
+    color: #37d9ff;
+    border: 2px solid #ff39c8;
+    border-radius: 10px;
+    padding: 12px 20px;
+    margin: 6px;
+    font-size: clamp(17px, 2.4vw, 28px);
+    cursor: pointer;
+  }
+  select { width: min(100%, 440px); }
+  #status { color: #37d9ff; }
+</style>
+</head>
+<body>
+<main>
+<h2>SHAREPODS RADIO TEST</h2>
+<p>URL-controlled station selection + AutoPlay</p>
+<select id="station">
+  <option value="metal">Heavy Metal</option>
+  <option value="rock">Alternative Rock</option>
+  <option value="blues">Star Blues</option>
+  <option value="chill">Chill</option>
+  <option value="salsa">Solo Salsa</option>
+  <option value="classic">Classic FM</option>
+</select>
+<div>
+  <button onclick="playRadio()">PLAY</button>
+  <button onclick="pauseRadio()">PAUSE</button>
+</div>
+<p id="status">Ready</p>
+<audio id="radio" preload="none" autoplay></audio>
+</main>
+<script>
+const stations = {
+  metal: "https://stream.starfm.de/fromhell/mp3-192/",
+  rock: "https://stream.starfm.de/alternat/mp3-192/",
+  blues: "https://stream.starfm.de/blues/mp3-192/",
+  chill: "https://stream.spreeradio.de/spree-chill/mp3-192/",
+  salsa: "https://c15.radioboss.fm:18230/stream",
+  classic: "https://media-ssl.musicradio.com/ClassicFMMP3"
+};
+const selector = document.getElementById("station");
+const radio = document.getElementById("radio");
+const statusText = document.getElementById("status");
+const params = new URLSearchParams(window.location.search);
+const requested = params.get("station");
+if (requested && stations[requested]) {
+  selector.value = requested;
+  statusText.textContent = "Received station: " + requested;
+}
+async function playRadio() {
+  const name = selector.value;
+  radio.pause();
+  radio.src = stations[name];
+  radio.load();
+  statusText.textContent = "Connecting: " + name;
+  try {
+    await radio.play();
+    statusText.textContent = "Playing: " + name;
+  } catch (error) {
+    statusText.textContent = "Autoplay blocked: " + error.message;
+  }
+}
+function pauseRadio() {
+  radio.pause();
+  statusText.textContent = "Paused";
+}
+selector.addEventListener("change", () => { playRadio(); });
+window.addEventListener("load", () => {
+  if (requested && stations[requested]) { playRadio(); }
+});
+</script>
+</body>
+</html>
