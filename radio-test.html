@@ -4,9 +4,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SharePods Radio Test</title>
+<title>SharePods Radio Test v0.2</title>
+
 <style>
   * { box-sizing: border-box; }
+
   body {
     margin: 0;
     padding: 14px;
@@ -15,7 +17,9 @@
     font-family: Arial, sans-serif;
     text-align: center;
   }
+
   h2 { color: #ff39c8; }
+
   select, button {
     background: #111827;
     color: #37d9ff;
@@ -24,13 +28,15 @@
     padding: 10px;
     margin: 5px;
   }
+
   #status { color: #37d9ff; }
 </style>
 </head>
+
 <body>
 
 <h2>SHAREPODS RADIO TEST</h2>
-<p>URL-controlled station selection</p>
+<p>URL-controlled station selection + AutoPlay</p>
 
 <select id="station">
   <option value="metal">Heavy Metal</option>
@@ -47,7 +53,8 @@
 </div>
 
 <p id="status">Ready</p>
-<audio id="radio" preload="none"></audio>
+
+<audio id="radio" preload="none" autoplay></audio>
 
 <script>
 const stations = {
@@ -71,27 +78,21 @@ if (requested && stations[requested]) {
   statusText.textContent = "Received station: " + requested;
 }
 
-selector.addEventListener("change", () => {
-  radio.pause();
-  radio.removeAttribute("src");
-  radio.load();
-  statusText.textContent = "Selected: " +
-    selector.options[selector.selectedIndex].text;
-});
-
 async function playRadio() {
   const name = selector.value;
+
   radio.pause();
   radio.src = stations[name];
   radio.load();
 
-  statusText.textContent = "Connecting...";
+  statusText.textContent = "Connecting: " + name;
 
   try {
     await radio.play();
     statusText.textContent = "Playing: " + name;
   } catch (error) {
-    statusText.textContent = "Playback failed: " + error.message;
+    statusText.textContent =
+      "Autoplay blocked: " + error.message;
   }
 }
 
@@ -99,6 +100,17 @@ function pauseRadio() {
   radio.pause();
   statusText.textContent = "Paused";
 }
+
+selector.addEventListener("change", () => {
+  playRadio();
+});
+
+// Attempt automatic playback when page loads.
+window.addEventListener("load", () => {
+  if (requested && stations[requested]) {
+    playRadio();
+  }
+});
 </script>
 
 </body>
